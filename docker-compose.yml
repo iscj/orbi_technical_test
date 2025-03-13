@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # Puerto AMQP (RabbitMQ)
+      - "15672:15672" # Panel de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  notification:
+    build:
+      context: notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: always
+    ports:
+      - "50052:50052" # Puerto gRPC
+    env_file:
+      -  notification-service/.env
+    environment:
+      URL_GRPC: notification
+      URL_RABBITMQ: rabbitmq
+      URL_ENDPOINT: http://user-service:3000
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./proto:/home/proto
+    command: npm run start
+
+  user-service:
+    build:
+      context: user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: always
+    ports:
+      - "3000:3000" # Puerto gRPC
+    env_file:
+      -  user-service/.env
+    environment:
+      URL_GRPC: notification
+      URL_RABBITMQ: rabbitmq
+      DB_STORAGE: /home/database/data.sqlite3
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./proto:/home/proto
+      - .db:/home/database    
