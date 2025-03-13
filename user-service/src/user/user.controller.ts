@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ClientGrpc,
+  ClientProxy,
   GrpcMethod,
   GrpcStreamMethod,
 } from '@nestjs/microservices';
@@ -24,6 +25,7 @@ export class UserController implements OnModuleInit {
 
   constructor(
     @Inject('USER_PACKAGE') private client: ClientGrpc,
+    @Inject('RABBITMQ_SERVICE') private readonly clientRMQ: ClientProxy,
     private readonly userService: UserService
   ) {}
 
@@ -55,6 +57,13 @@ export class UserController implements OnModuleInit {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    this.sendMessageQueue(updateUserDto, 'Informacion actualizada!')
     return this.userService.update(+id, updateUserDto);
+  }
+
+  async sendMessageQueue(userInfo: UpdateUserDto, message: string) {
+    const payload = { userInfo, message };
+    console.log(payload)
+    this.clientRMQ.emit('notification_event', payload);
   }
 }

@@ -18,8 +18,19 @@ import { SequelizeModule } from '@nestjs/sequelize';
         transport: Transport.GRPC,
         options: {
           package: 'userproto',
-          protoPath: join(__dirname, '../../../proto/user/user.proto'),//'../proto/user/user.proto',
-          url: '0.0.0.0:50052',
+          protoPath: '../proto/user/user.proto',
+          url: `${process.env.URL_GRPC}:${process.env.PORT_GRPC}`,
+        },
+      },
+      {
+        name: 'RABBITMQ_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: [`amqp://${process.env.URL_RABBITMQ}:${process.env.PORT_RABBITMQ}`],
+          queue: 'notifications_queue',
+          queueOptions: {
+            durable: true
+          },
         },
       },
     ]),

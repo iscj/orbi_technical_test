@@ -23,6 +23,12 @@ export class UserService {
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    return this.productRepository.update(
+      updateUserDto,
+      {
+        where:{
+          id: id
+        }
+      });
   }
 }

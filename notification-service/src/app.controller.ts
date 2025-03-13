@@ -1,29 +1,34 @@
 import { Controller } from '@nestjs/common';
-import { GrpcMethod } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
+import { GrpcMethod, EventPattern } from '@nestjs/microservices';
+import { AppService } from './app.service';
 
 interface userById {
   id: number;
 }
 
+interface DataInfo {
+  userInfo: {
+    nombre: string;
+    email: string;
+    edad: string;
+  };
+  message: string; 
+}
+
 @Controller('protousers')
 export class AppController {
   constructor(
-    private readonly httpService: HttpService
+    private readonly appService: AppService
   ) {}
 
   @GrpcMethod('UserService', 'GetUser')
   async getUser(data: userById) {
-    const result = await this.sendNotification(data.id)
+    const result = await this.appService.sendNotification(data.id)
     return result;
   }
 
-  async sendNotification(userId: number) {
-    const userResponse = await lastValueFrom(
-      this.httpService.get(`http://localhost:3000/user/${userId}`),
-    );
-    const user = userResponse.data;
-    return {message: `Notificación enviada a ${user.email}` };
+  @EventPattern('notification_event')
+  async handleNotification(data: DataInfo) {
+    console.log(`📩 Notificación recibida para el usuario ${JSON.stringify(data.userInfo)}: ${data.message}`);
   }
 }
