@@ -11,5 +11,5 @@ export class User extends Model {
 	email: string;
 
 	@Column
-	edad: string;
+	edad: number;
 }
