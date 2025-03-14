@@ -36,4 +36,5 @@ $ npm run start:prod
 ```
 
 ## Documentation
-
+url a swagger:
+http://localhost:3000/api
